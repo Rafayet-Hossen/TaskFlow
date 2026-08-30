@@ -40,27 +40,43 @@ async def send_email(to_email: str, subject: str, html_content: str, text_conten
     message.attach(part1)
     message.attach(part2)
 
-    try:
-        is_ssl_port = settings.SMTP_PORT == 465
-        await aiosmtplib.send(
-            message,
-            sender=sender_email,
-            recipients=[to_email],
-            hostname=settings.SMTP_HOST,
-            port=settings.SMTP_PORT,
-            use_tls=is_ssl_port,
-            start_tls=(not is_ssl_port) and settings.SMTP_USE_TLS,
-            username=smtp_user,
-            password=smtp_password,
-            timeout=20,
-        )
-        logger.info(f"Email successfully dispatched to {to_email} from {sender_email}")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to send email to {to_email} via SMTP ({settings.SMTP_HOST}:{settings.SMTP_PORT}): {e}")
-        # Log to console so user can see it if SMTP credentials have an issue
-        print(f"\n[SMTP FAILED - CONSOLE FALLBACK] Code for {to_email}:\n{text_content}\n")
-        return False
+    # Try primary port first (e.g. 587 STARTTLS), then fallback to port 465 (SSL) if blocked
+    ports_to_try = [
+        (settings.SMTP_PORT, settings.SMTP_PORT == 465),
+        (465, True),
+        (587, False)
+    ]
+    seen = set()
+    unique_ports = []
+    for p, ssl in ports_to_try:
+        if p not in seen:
+            seen.add(p)
+            unique_ports.append((p, ssl))
+
+    last_error = None
+    for port, use_ssl in unique_ports:
+        try:
+            await aiosmtplib.send(
+                message,
+                sender=sender_email,
+                recipients=[to_email],
+                hostname=settings.SMTP_HOST,
+                port=port,
+                use_tls=use_ssl,
+                start_tls=(not use_ssl),
+                username=smtp_user,
+                password=smtp_password,
+                timeout=12,
+            )
+            logger.info(f"Email successfully dispatched to {to_email} via {settings.SMTP_HOST}:{port}")
+            return True
+        except Exception as e:
+            last_error = e
+            logger.warning(f"SMTP attempt on {settings.SMTP_HOST}:{port} failed: {e}")
+
+    logger.error(f"All SMTP attempts failed for {to_email}. Last error: {last_error}")
+    print(f"\n[SMTP FAILED - CONSOLE FALLBACK] Code for {to_email}:\n{text_content}\n")
+    return False
 
 async def send_verification_email(to_email: str, full_name: str, code: str):
     """Sends 6-digit email verification code."""

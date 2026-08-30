@@ -25,7 +25,7 @@ services:
       - key: SMTP_USER
         value: hossenmdrafayet@gmail.com
       - key: SMTP_PASSWORD
-        sync: false
+        value: hjofxfotujfwymlb
       - key: SMTP_FROM_EMAIL
         value: hossenmdrafayet@gmail.com
       - key: SMTP_FROM_NAME

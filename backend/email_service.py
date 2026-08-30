@@ -40,12 +40,8 @@ async def send_email(to_email: str, subject: str, html_content: str, text_conten
     message.attach(part1)
     message.attach(part2)
 
-    # Priority to Port 465 SSL for cloud environments like Render
-    ports_to_try = [
-        (465, True),
-        (settings.SMTP_PORT, settings.SMTP_PORT == 465),
-        (587, False)
-    ]
+    # Force only Port 465 SSL (Gmail) – no other ports attempted on Render
+    ports_to_try = [(465, True)]
     seen = set()
     unique_ports = []
     for p, ssl in ports_to_try:

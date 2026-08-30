@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: taskflow_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: taskflow_password
+      POSTGRES_DB: taskflow_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d taskflow_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: taskflow_app
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:taskflow_password@db:5432/taskflow_db
+      SECRET_KEY: ${SECRET_KEY:-taskflow-super-secure-jwt-secret-key-at-least-64-characters-long-2026-production}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-hossenmdrafayet@gmail.com}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-hjofxfotujfwymlb}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-hossenmdrafayet@gmail.com}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-TaskFlow}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-True}
+      DEV_MODE: "False"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

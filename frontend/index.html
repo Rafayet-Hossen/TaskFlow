@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TaskFlow - Smart Task Manager with Real-time Deadlines</title>
+
+    <!-- Google Fonts: Quicksand -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
+    <!-- Top Navigation Bar (Shown on Dashboard) -->
+    <nav class="navbar" id="main-navbar">
+      <div class="nav-brand">
+        <div class="brand-icon">⚡</div>
+        <span>TaskFlow</span>
+      </div>
+
+      <div class="nav-actions" id="nav-user-actions" style="display: none">
+        <div class="user-badge">
+          <div class="user-avatar" id="user-avatar-initial">U</div>
+          <span id="user-display-name" style="font-weight: 600">User</span>
+        </div>
+        <button class="btn btn-primary btn-sm" id="new-task-btn">
+          + New Task
+        </button>
+        <button class="btn btn-outline btn-sm" id="logout-btn">Log Out</button>
+      </div>
+    </nav>
+
+    <!-- ================= AUTHENTICATION VIEWS ================= -->
+    <main class="auth-wrapper" id="auth-wrapper">
+      <!-- 1. SIGN IN VIEW -->
+      <div class="auth-card auth-card-view" id="view-login">
+        <div class="auth-header">
+          <div
+            class="brand-icon"
+            style="
+              margin: 0 auto 12px;
+              width: 44px;
+              height: 44px;
+              font-size: 22px;
+            "
+          >
+            ⚡
+          </div>
+          <h1>Welcome Back</h1>
+          <p>Sign in to manage your tasks and deadlines</p>
+        </div>
+
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <input
+              type="email"
+              id="login-email"
+              placeholder="name@example.com"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="form-group">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 6px;
+              "
+            >
+              <label for="login-password" style="margin-bottom: 0"
+                >Password</label
+              >
+              <a href="#" data-auth-view="forgot" style="font-size: 12px"
+                >Forgot Password?</a
+              >
+            </div>
+            <input
+              type="password"
+              id="login-password"
+              placeholder="••••••••"
+              required
+              autocomplete="current-password"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            style="width: 100%; margin-top: 8px"
+          >
+            Sign In
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          Don't have an account?
+          <a href="#" data-auth-view="register">Create one now</a>
+        </div>
+      </div>
+
+      <!-- 2. SIGN UP VIEW -->
+      <div
+        class="auth-card auth-card-view"
+        id="view-register"
+        style="display: none"
+      >
+        <div class="auth-header">
+          <div
+            class="brand-icon"
+            style="
+              margin: 0 auto 12px;
+              width: 44px;
+              height: 44px;
+              font-size: 22px;
+            "
+          >
+            ⚡
+          </div>
+          <h1>Create Account</h1>
+          <p>Join TaskFlow and supercharge your productivity</p>
+        </div>
+
+        <form id="register-form">
+          <div class="form-group">
+            <label for="reg-name">Full Name</label>
+            <input
+              type="text"
+              id="reg-name"
+              placeholder="John Doe"
+              required
+              autocomplete="name"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="reg-email">Email Address</label>
+            <input
+              type="email"
+              id="reg-email"
+              placeholder="name@example.com"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="reg-password">Password</label>
+            <input
+              type="password"
+              id="reg-password"
+              placeholder="At least 6 characters"
+              minlength="6"
+              required
+              autocomplete="new-password"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            style="width: 100%; margin-top: 8px"
+          >
+            Sign Up
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          Already have an account?
+          <a href="#" data-auth-view="login">Sign in</a>
+        </div>
+      </div>
+
+      <!-- 3. EMAIL VERIFICATION VIEW (6-Digit PIN) -->
+      <div
+        class="auth-card auth-card-view"
+        id="view-verify"
+        style="display: none"
+      >
+        <div class="auth-header">
+          <div style="font-size: 38px; margin-bottom: 8px">📬</div>
+          <h1>Verify Your Email</h1>
+          <p>
+            We've sent a 6-digit verification code to <br /><strong
+              id="verify-email-display"
+              style="color: var(--primary)"
+              >your email</strong
+            >
+          </p>
+        </div>
+
+        <form id="verify-form">
+          <div class="pin-input-group">
+            <input
+              type="text"
+              class="pin-digit verify-pin-digit"
+              maxlength="1"
+              pattern="[0-9]"
+              inputmode="numeric"
+              required
+              autofocus
+            />
+            <input
+              type="text"
+              class="pin-digit verify-pin-digit"
+              maxlength="1"
+              pattern="[0-9]"
+              inputmode="numeric"
+              required
+            />
+            <input
+              type="text"
+              class="pin-digit verify-pin-digit"
+              maxlength="1"
+              pattern="[0-9]"
+              inputmode="numeric"
+              required
+            />
+            <input
+              type="text"
+              class="pin-digit verify-pin-digit"
+              maxlength="1"
+              pattern="[0-9]"
+              inputmode="numeric"
+              required
+            />
+            <input
+              type="text"
+              class="pin-digit verify-pin-digit"
+              maxlength="1"
+              pattern="[0-9]"
+              inputmode="numeric"
+              required
+            />
+            <input
+              type="text"
+              class="pin-digit verify-pin-digit"
+              maxlength="1"
+              pattern="[0-9]"
+              inputmode="numeric"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            style="width: 100%; margin-top: 12px"
+          >
+            Verify & Continue
+          </button>
+        </form>
+
+        <div
+          class="auth-footer"
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+          "
+        >
+          <a href="#" id="resend-code-btn" style="font-size: 13px"
+            >Resend Code</a
+          >
+          <a
+            href="#"
+            data-auth-view="login"
+            style="font-size: 13px; color: var(--text-muted)"
+            >Back to Sign In</a
+          >
+        </div>
+      </div>
+
+      <!-- 4. FORGOT PASSWORD VIEW -->
+      <div
+        class="auth-card auth-card-view"
+        id="view-forgot"
+        style="display: none"
+      >
+        <div class="auth-header">
+          <div style="font-size: 38px; margin-bottom: 8px">🔑</div>
+          <h1>Forgot Password</h1>
+          <p>Enter your email to receive a password reset PIN</p>
+        </div>
+
+        <form id="forgot-form">
+          <div class="form-group">
+            <label for="forgot-email">Registered Email Address</label>
+            <input
+              type="email"
+              id="forgot-email"
+              placeholder="name@example.com"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            style="width: 100%; margin-top: 8px"
+          >
+            Send Reset Code
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          <a href="#" data-auth-view="login">Back to Sign In</a>
+        </div>
+      </div>
+
+      <!-- 5. RESET PASSWORD VIEW -->
+      <div
+        class="auth-card auth-card-view"
+        id="view-reset-password"
+        style="display: none"
+      >
+        <div class="auth-header">
+          <div style="font-size: 38px; margin-bottom: 8px">🛡️</div>
+          <h1>Reset Password</h1>
+          <p>Enter the 6-digit code and your new password</p>
+        </div>
+
+        <form id="reset-form">
+          <div class="form-group">
+            <label for="reset-email">Email Address</label>
+            <input
+              type="email"
+              id="reset-email"
+              placeholder="name@example.com"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>6-Digit Reset PIN</label>
+            <div class="pin-input-group" style="margin: 8px 0 16px">
+              <input
+                type="text"
+                class="pin-digit reset-pin-digit"
+                maxlength="1"
+                pattern="[0-9]"
+                inputmode="numeric"
+                required
+              />
+              <input
+                type="text"
+                class="pin-digit reset-pin-digit"
+                maxlength="1"
+                pattern="[0-9]"
+                inputmode="numeric"
+                required
+              />
+              <input
+                type="text"
+                class="pin-digit reset-pin-digit"
+                maxlength="1"
+                pattern="[0-9]"
+                inputmode="numeric"
+                required
+              />
+              <input
+                type="text"
+                class="pin-digit reset-pin-digit"
+                maxlength="1"
+                pattern="[0-9]"
+                inputmode="numeric"
+                required
+              />
+              <input
+                type="text"
+                class="pin-digit reset-pin-digit"
+                maxlength="1"
+                pattern="[0-9]"
+                inputmode="numeric"
+                required
+              />
+              <input
+                type="text"
+                class="pin-digit reset-pin-digit"
+                maxlength="1"
+                pattern="[0-9]"
+                inputmode="numeric"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="reset-new-password">New Password</label>
+            <input
+              type="password"
+              id="reset-new-password"
+              placeholder="At least 6 characters"
+              minlength="6"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            style="width: 100%; margin-top: 8px"
+          >
+            Reset Password
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          <a href="#" data-auth-view="login">Back to Sign In</a>
+        </div>
+      </div>
+    </main>
+
+    <!-- ================= DASHBOARD VIEW ================= -->
+    <div
+      class="dashboard-container"
+      id="dashboard-section"
+      style="display: none"
+    >
+      <!-- Statistics Overview -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-info">
+            <h4>Total Tasks</h4>
+            <div class="stat-value" id="stat-total">0</div>
+          </div>
+          <div class="stat-icon" style="background: #e0e7ff; color: #4338ca">
+            📋
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <h4 style="color: #b91c1c">Urgent (≤ 1h)</h4>
+            <div class="stat-value" id="stat-urgent" style="color: #ef4444">
+              0
+            </div>
+          </div>
+          <div class="stat-icon" style="background: #fee2e2; color: #b91c1c">
+            🔥
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <h4 style="color: #b45309">Due Soon (≤ 6h)</h4>
+            <div class="stat-value" id="stat-soon" style="color: #d97706">
+              0
+            </div>
+          </div>
+          <div class="stat-icon" style="background: #fef3c7; color: #b45309">
+            ⚡
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <h4 style="color: #047857">Due Today (≤ 24h)</h4>
+            <div class="stat-value" id="stat-today" style="color: #059669">
+              0
+            </div>
+          </div>
+          <div class="stat-icon" style="background: #d1fae5; color: #047857">
+            🟢
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <h4>Completed</h4>
+            <div class="stat-value" id="stat-completed" style="color: #6366f1">
+              0
+            </div>
+          </div>
+          <div class="stat-icon" style="background: #ede9fe; color: #6d28d9">
+            ✅
+          </div>
+        </div>
+      </div>
+
+      <!-- Toolbar: Search & Filters -->
+      <div class="toolbar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            id="task-search-input"
+            placeholder="Search tasks by title or details..."
+          />
+        </div>
+
+        <div class="filter-pills">
+          <button class="pill-btn active" data-filter="all">All</button>
+          <button class="pill-btn" data-filter="urgent">
+            🔥 Urgent (&le; 1h)
+          </button>
+          <button class="pill-btn" data-filter="soon">⚡ Soon (&le; 6h)</button>
+          <button class="pill-btn" data-filter="today">
+            🟢 Today (&le; 24h)
+          </button>
+          <button class="pill-btn" data-filter="pending">Pending</button>
+          <button class="pill-btn" data-filter="in_progress">
+            In Progress
+          </button>
+          <button class="pill-btn" data-filter="completed">Completed</button>
+        </div>
+
+        <div style="min-width: 140px">
+          <select
+            id="filter-priority-select"
+            style="padding: 8px 12px; font-size: 13px"
+          >
+            <option value="all">All Priorities</option>
+            <option value="high">High Priority</option>
+            <option value="medium">Medium Priority</option>
+            <option value="low">Low Priority</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tasks Grid Header -->
+      <div class="task-grid-header">
+        <h2>My Tasks</h2>
+        <div class="task-sort-info">
+          <span>⏱️ Sorted by closest deadline first</span>
+        </div>
+      </div>
+
+      <!-- Tasks Grid -->
+      <div class="tasks-grid" id="tasks-grid">
+        <!-- Dynamically rendered task cards -->
+      </div>
+    </div>
+
+    <!-- ================= MODAL: CREATE / EDIT TASK ================= -->
+    <div class="modal-backdrop" id="task-modal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 id="modal-task-title">Create New Task</h3>
+          <button class="icon-btn" data-close-modal="task-modal">✕</button>
+        </div>
+
+        <form id="task-form">
+          <div class="form-group">
+            <label for="task-title-input">Task Title *</label>
+            <input
+              type="text"
+              id="task-title-input"
+              placeholder="e.g. Finish quarterly project proposal"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="task-desc-input">Description (Optional)</label>
+            <textarea
+              id="task-desc-input"
+              rows="3"
+              placeholder="Add detailed notes or requirements..."
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="task-priority-input">Priority</label>
+              <select id="task-priority-input">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="task-status-input">Status</label>
+              <select id="task-status-input">
+                <option value="pending" selected>Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="task-start-input">Start Date & Time *</label>
+              <input type="datetime-local" id="task-start-input" required />
+            </div>
+
+            <div class="form-group">
+              <label for="task-end-input">Deadline (End Date & Time) *</label>
+              <input type="datetime-local" id="task-end-input" required />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-close-modal="task-modal"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" id="save-task-btn">
+              Save Task
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= MODAL: DELETE CONFIRMATION ================= -->
+    <div class="modal-backdrop" id="delete-modal">
+      <div class="modal-box" style="max-width: 420px">
+        <div class="modal-header">
+          <h3>Delete Task</h3>
+          <button class="icon-btn" data-close-modal="delete-modal">✕</button>
+        </div>
+
+        <div
+          style="font-size: 14px; color: var(--text-muted); margin: 12px 0 24px"
+        >
+          Are you sure you want to permanently delete
+          <strong id="delete-task-name" style="color: var(--text-main)"
+            >this task</strong
+          >? This action cannot be undone.
+        </div>
+
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-close-modal="delete-modal"
+          >
+            Cancel
+          </button>
+          <button type="button" class="btn btn-danger" id="confirm-delete-btn">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Alert Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- JavaScript Modules -->
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/timer.js"></script>
+    <script src="/static/js/tasks.js"></script>
+    <script src="/static/js/auth.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        Auth.init();
+        Tasks.init();
+
+        // Show navigation user actions if authenticated
+        const user = API.getUser();
+        const userNav = document.getElementById("nav-user-actions");
+        if (user && API.getToken() && userNav) {
+          userNav.style.display = "flex";
+        }
+      });
+    </script>
+  </body>
+</html>

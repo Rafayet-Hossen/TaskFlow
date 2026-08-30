@@ -40,10 +40,10 @@ async def send_email(to_email: str, subject: str, html_content: str, text_conten
     message.attach(part1)
     message.attach(part2)
 
-    # Try primary port first (e.g. 587 STARTTLS), then fallback to port 465 (SSL) if blocked
+    # Priority to Port 465 SSL for cloud environments like Render
     ports_to_try = [
-        (settings.SMTP_PORT, settings.SMTP_PORT == 465),
         (465, True),
+        (settings.SMTP_PORT, settings.SMTP_PORT == 465),
         (587, False)
     ]
     seen = set()

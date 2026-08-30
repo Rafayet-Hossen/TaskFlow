@@ -8,17 +8,21 @@ logger = logging.getLogger(__name__)
 # Try connecting to PostgreSQL first, fallback to SQLite if unavailable in dev
 def create_db_engine():
     db_url = settings.DATABASE_URL
+    # Cloud providers like Render often use 'postgres://' which SQLAlchemy requires as 'postgresql://'
+    if db_url and db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+
     try:
-        if db_url.startswith("postgresql"):
+        if db_url and db_url.startswith("postgresql"):
             # Test PostgreSQL connection with a short timeout
             engine = create_engine(
                 db_url,
-                connect_args={"connect_timeout": 3},
+                connect_args={"connect_timeout": 5},
                 pool_pre_ping=True
             )
             # Try connecting
             with engine.connect():
-                logger.info(f"Connected successfully to PostgreSQL at {db_url}")
+                logger.info(f"Connected successfully to PostgreSQL")
                 return engine, db_url
     except Exception as e:
         logger.warning(f"Could not connect to PostgreSQL ({e}). Falling back to SQLite for local development: {settings.SQLITE_FALLBACK_URL}")

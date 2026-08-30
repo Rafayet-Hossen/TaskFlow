@@ -1,7 +1,7 @@
 databases:
   - name: taskflow-postgres
     databaseName: taskflow_db
-    user: postgres
+    user: taskflow_user
     plan: free
 
 services:
